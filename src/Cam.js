@@ -59,7 +59,13 @@ const Cam = () => {
           autoPlay
           muted
         ></video>
-        <video ref={recordingRef} playsInline controls></video>
+        <video
+          ref={recordingRef}
+          width="320"
+          height="240"
+          playsInline
+          controls
+        ></video>
         <div className="flex flex-wrap gap-2">
           <button onClick={startRecording} className="btn">
             Start Recording
