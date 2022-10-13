@@ -2,6 +2,7 @@ import React, { useRef } from "react";
 
 const Cam = () => {
   let videoRef = useRef();
+  let recordingRef = useRef();
   let downloadLink = useRef();
   let camera_stream = null;
   let media_recorder = null;
@@ -35,6 +36,7 @@ const Cam = () => {
       let video_local = URL.createObjectURL(
         new Blob(blobs_recorded, { type: "video/webm" })
       );
+      recordingRef.current.src = video_local;
       downloadLink.current.href = video_local;
     });
     media_recorder.start();
@@ -57,6 +59,7 @@ const Cam = () => {
           autoPlay
           muted
         ></video>
+        <video ref={recordingRef} playsInline controls></video>
         <div className="flex flex-wrap gap-2">
           <button onClick={startRecording} className="btn">
             Start Recording
