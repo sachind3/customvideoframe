@@ -1,70 +1,62 @@
-import React from "react";
-import { useReactMediaRecorder } from "react-media-recorder";
-
-function LiveStreamPreview({ stream }) {
-  let videoPreviewRef = React.useRef();
-
-  React.useEffect(() => {
-    if (videoPreviewRef.current && stream) {
-      videoPreviewRef.current.srcObject = stream;
-    }
-  }, [stream]);
-
-  if (!stream) {
-    console.log("No stream available");
-    return null;
-  }
-
-  return <video ref={videoPreviewRef} width={520} height={480} autoPlay />;
-}
+import React, { useRef } from "react";
 
 const Cam = () => {
-  const onRecordStop = (blobURL, blob) => {
-    console.log({ blob });
-    var fileOfBlob = new File([blob], `Recorded-${Math.random() * 10}-version`);
-    console.log({ fileOfBlob });
-    //startRecording();
+  let videoRef = useRef();
+  let downloadLink = useRef();
+  let camera_stream = null;
+  let media_recorder = null;
+  let blobs_recorded = [];
+
+  const startCamera = async () => {
+    camera_stream = await navigator.mediaDevices.getUserMedia({
+      video: true,
+      audio: true,
+    });
+    videoRef.current.srcObject = camera_stream;
   };
 
-  const {
-    status,
-    startRecording,
-    stopRecording,
-    mediaBlobUrl,
-    //clearBlobUrl,
-    previewStream,
-  } = useReactMediaRecorder({
-    onStop: onRecordStop,
-    video: true,
-    askPermissionOnMount: true,
-    blobOptions: { type: "video/webm" },
-    mediaStreamConstraints: { audio: true, video: true },
-  });
+  const startRecording = () => {
+    media_recorder = new MediaRecorder(camera_stream, {
+      mimeType: "video/webm",
+    });
+    media_recorder.addEventListener("dataavailable", function (e) {
+      blobs_recorded.push(e.data);
+    });
+    media_recorder.addEventListener("stop", function () {
+      let video_local = URL.createObjectURL(
+        new Blob(blobs_recorded, { type: "video/webm" })
+      );
+      downloadLink.current.href = video_local;
+    });
+    media_recorder.start(1000);
+  };
 
-  console.log({ previewStream });
-
-  const stopCurrentRecording = () => {
-    stopRecording();
+  const stopRecording = () => {
+    media_recorder.stop();
   };
   return (
-    <div>
-      <h5>Status: {status}</h5>
-      <div>
-        <button onClick={startRecording} disabled={status === "recording"}>
-          Start Recording
+    <div className="w-[320px] mx-auto">
+      <div className="flex flex-col gap-2">
+        <button onClick={startCamera} className="btn">
+          Start Camera
         </button>
-        <button
-          onClick={stopCurrentRecording}
-          disabled={status !== "recording"}
-        >
-          Stop Recording
-        </button>
-      </div>
-      <h3>Live:</h3>
-      <div>{previewStream && <LiveStreamPreview stream={previewStream} />}</div>
-      <h3>Recorded:</h3>
-      <div>
-        {mediaBlobUrl && <video src={mediaBlobUrl} controls autoPlay loop />}
+        <video ref={videoRef} width="320" height="240" autoPlay></video>
+        <div className="flex flex-wrap gap-2">
+          <button onClick={startRecording} className="btn">
+            Start Recording
+          </button>
+          <button onClick={stopRecording} className="btn">
+            Stop Recording
+          </button>
+          <a
+            ref={downloadLink}
+            href="test.webm"
+            download="test.webm"
+            className="btn"
+          >
+            Download Video
+          </a>
+        </div>
       </div>
     </div>
   );
