@@ -9,8 +9,17 @@ const Cam = () => {
 
   const startCamera = async () => {
     camera_stream = await navigator.mediaDevices.getUserMedia({
-      video: true,
-      audio: true,
+      audio: {
+        channelCount: 1,
+        sampleRate: 16000,
+        sampleSize: 16,
+        volume: 1,
+      },
+      video: {
+        height: 720,
+        width: 1280,
+        facingMode: "user",
+      },
     });
     videoRef.current.srcObject = camera_stream;
   };
@@ -28,7 +37,7 @@ const Cam = () => {
       );
       downloadLink.current.href = video_local;
     });
-    media_recorder.start(1000);
+    media_recorder.start();
   };
 
   const stopRecording = () => {
@@ -40,7 +49,14 @@ const Cam = () => {
         <button onClick={startCamera} className="btn">
           Start Camera
         </button>
-        <video ref={videoRef} width="320" height="240" autoPlay></video>
+        <video
+          ref={videoRef}
+          width="320"
+          height="240"
+          playsInline
+          autoPlay
+          muted
+        ></video>
         <div className="flex flex-wrap gap-2">
           <button onClick={startRecording} className="btn">
             Start Recording
